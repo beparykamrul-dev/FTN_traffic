@@ -1,0 +1,20 @@
+version: 1
+providers:
+  github:
+    role: origin
+    capabilities: [source, releases]
+  cdn:
+    role: edge_delivery
+    capabilities: [cache, purge, health, delivery]
+  transit:
+    role: internet_transit
+    capabilities: [bgp, ipv4, ipv6]
+  ix:
+    role: peering
+    capabilities: [bgp, peering]
+policy:
+  provider_selection: capability_and_health
+  credentials_from_git: false
+  credentials_in_telemetry: false
+  privileged_changes_require_approval: true
+  audit_provider_mutations: true
