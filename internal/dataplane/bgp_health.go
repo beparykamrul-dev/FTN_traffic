@@ -9,13 +9,7 @@ func ValidateBGPSessions(sessions []BGPSession, requireRPKI bool) error {
 }
 
 func ValidateBGPSessionsWithLimit(sessions []BGPSession, requireRPKI bool, maxPrefixes uint64) error {
-	if len(sessions) == 0 {
-		return ErrNoEstablishedBGP
-	}
-	for _, s := range sessions {
-		if s.Healthy(requireRPKI, maxPrefixes) {
-			return nil
-		}
-	}
-	return ErrNoEstablishedBGP
+	if len(sessions) == 0 { return ErrNoEstablishedBGP }
+	if _, err := SelectHealthyBGPSession(sessions, requireRPKI, maxPrefixes); err != nil { return ErrNoEstablishedBGP }
+	return nil
 }
