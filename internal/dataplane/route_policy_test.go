@@ -22,3 +22,8 @@ func TestRoutePolicyRejectsInvalidCommunity(t *testing.T) {
 	r := RouteBatch{RPKIValid: true, Routes: []RouteIntent{{Prefix: "203.0.113.0/24", Family: IPv4, Authorized: true, Community: []string{"invalid"}}}}
 	if err := (RoutePolicy{MaxPrefixes: 10}).Validate(r); err != ErrInvalidCommunity { t.Fatalf("expected community error, got %v", err) }
 }
+
+func TestRoutePolicyAcceptsValidRoute(t *testing.T) {
+	r := RouteBatch{RPKIValid: true, Routes: []RouteIntent{{Prefix: "203.0.113.0/24", Family: IPv4, Authorized: true, Community: []string{"64500:100"}}}}
+	if err := (RoutePolicy{RequireRPKI:true, MaxPrefixes:10}).Validate(r); err != nil { t.Fatalf("unexpected validation error: %v", err) }
+}
