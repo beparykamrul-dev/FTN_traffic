@@ -10,3 +10,11 @@ func TestValidateRoutes(t *testing.T) {
 	bad = good; bad.Prefix = "not-a-prefix"
 	if err := ValidateRoute(bad); err != ErrInvalidPrefix { t.Fatalf("got %v", err) }
 }
+
+func TestValidateRoutesRejectsCanonicalDuplicates(t *testing.T) {
+	routes := []RouteIntent{
+		{Prefix:"203.0.113.1/24", Family:IPv4, NextHop:"192.0.2.1", Authorized:true},
+		{Prefix:"203.0.113.0/24", Family:IPv4, NextHop:"192.0.2.1", Authorized:true},
+	}
+	if err := ValidateRoutes(routes); err != ErrDuplicateRoute { t.Fatalf("got %v", err) }
+}
