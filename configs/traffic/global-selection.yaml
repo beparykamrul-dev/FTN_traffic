@@ -1,0 +1,53 @@
+version: 1
+service: ftn-global-traffic-selector
+mode: authorized_selective_acquisition
+sources:
+  - name: ftn_origin
+    mode: direct_origin
+    authorization: owned_or_authorized
+  - name: public_cdn
+    mode: public_cdn
+    authorization: public
+  - name: contracted_cdn
+    mode: cdn_contract
+    authorization: contract_required
+  - name: partner_edge
+    mode: partner_edge
+    authorization: partner_required
+  - name: ix_peer
+    mode: ix_peering
+    authorization: peer_required
+  - name: internet_transit
+    mode: internet_transit
+    authorization: transit_contract_required
+selection_order:
+  - authorization
+  - health
+  - latency
+  - packet_loss
+  - capacity
+  - locality
+  - cost
+routing:
+  ipv4: true
+  ipv6: true
+  ecmp: true
+  multipath: true
+  failover: true
+  canary: true
+  weighted_shift: true
+  rpki_required_for_public_prefixes: true
+  bfd_required_at_routing_boundary: true
+migration:
+  preflight: true
+  health_gate: true
+  gradual_shift: true
+  observe: true
+  automatic_rollback: true
+  idempotent: true
+security:
+  unauthorized_access: deny
+  route_mutations_require_approval: true
+  provider_credentials_in_git: false
+  customer_payload_capture: false
+  public_routing_data_does_not_grant_access: true
