@@ -8,6 +8,7 @@ type RouteReconciler struct {
 	Approved   bool
 	Policy     *RoutePolicy
 	RPKIValid  bool
+	BFD        *BFDSession
 }
 
 func (r RouteReconciler) check(ctx context.Context, routes []RouteIntent) error {
@@ -22,6 +23,14 @@ func (r RouteReconciler) check(ctx context.Context, routes []RouteIntent) error 
 	}
 	if len(routes) == 0 {
 		return ErrEmptyRouteBatch
+	}
+	if r.BFD != nil {
+		if err := ValidateBFD(*r.BFD); err != nil {
+			return err
+		}
+		if !r.BFD.Up {
+			return ErrBFDInvalid
+		}
 	}
 	if r.Policy != nil {
 		if err := r.Policy.Validate(RouteBatch{Routes: routes, RPKIValid: r.RPKIValid}); err != nil {
