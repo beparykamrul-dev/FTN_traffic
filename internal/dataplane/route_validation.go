@@ -7,10 +7,11 @@ import (
 )
 
 var (
-	ErrInvalidPrefix = errors.New("invalid route prefix")
-	ErrInvalidNextHop = errors.New("invalid next-hop")
-	ErrRouteUnauthorized = errors.New("route intent unauthorized")
+	ErrInvalidPrefix      = errors.New("invalid route prefix")
+	ErrInvalidNextHop     = errors.New("invalid next-hop")
+	ErrRouteUnauthorized  = errors.New("route intent unauthorized")
 	ErrRouteFamilyMismatch = errors.New("route address-family mismatch")
+	ErrEmptyRouteBatch    = errors.New("route batch is empty")
 )
 
 func ValidateRoute(r RouteIntent) error {
@@ -43,6 +44,9 @@ func ValidateRoute(r RouteIntent) error {
 }
 
 func ValidateRoutes(routes []RouteIntent) error {
+	if len(routes) == 0 {
+		return ErrEmptyRouteBatch
+	}
 	seen := make(map[string]struct{}, len(routes))
 	for _, r := range routes {
 		if err := ValidateRoute(r); err != nil {
