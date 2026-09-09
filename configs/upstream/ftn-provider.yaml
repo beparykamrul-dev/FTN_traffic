@@ -1,0 +1,71 @@
+version: 1
+service: ftn-upstream-provider
+mode: isp_upstream
+objective:
+  - ftn_operates_as_a_downstream_isp_upstream
+  - minimize_single_provider_dependency
+  - provide_authorized_ip_transit_and_peering
+
+planes:
+  customer_access:
+    protocols: [pppoe, dhcp, ipv4, ipv6]
+  routing:
+    protocols: [ebgp, ibgp, bfd]
+    policy: [rpki, max_prefix, communities, local_pref, med]
+  peering:
+    route_server: true
+    ix_fabric: true
+    participant_isolation: true
+  services:
+    dns: true
+    cache_edge: true
+    cdn: true
+    ntp: true
+
+upstream_roles:
+  ftn_core:
+    role: provider
+    accepts_downstream_routes: true
+    advertises_authorized_ftn_routes: true
+  external_transit:
+    role: optional_external_dependency
+    enabled_for_global_reachability: true
+    never_single_point_of_failure: true
+  ix_peers:
+    role: peer
+    authorized_only: true
+
+customer_isp_contract:
+  bgp: true
+  ipv4_transit: true
+  ipv6_transit: true
+  default_route: optional
+  full_table: optional
+  partial_routes: supported
+  communities: supported
+  blackhole_community: authorized_only
+  rpki_validation: required
+  max_prefix: required
+  bfd: recommended
+  route_changes_require_approval: true
+
+security:
+  credentials_in_git: false
+  customer_traffic_interception: false
+  unauthorized_route_origination: false
+  unauthorized_transit: false
+  management_api_private: true
+  privileged_changes_require_approval: true
+  audit_required: true
+
+observability:
+  bgp_sessions: true
+  prefixes_received: true
+  prefixes_advertised: true
+  updates: true
+  bfd: true
+  rpki_validity: true
+  traffic_bytes: true
+  packet_loss: true
+  latency: true
+  capacity_headroom: true
