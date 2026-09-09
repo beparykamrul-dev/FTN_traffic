@@ -18,23 +18,37 @@ control_plane:
 engines:
   authoritative:
     - powerdns_enterprise
+    - powerdns_authoritative
     - technitium_dns
     - coredns
     - hickory_dns
+    - knot_dns
+    - bind9
+    - nsd
     - numadns
+    - yadifa
+    - maradns
   recursive:
     - unbound
+    - powerdns_recursor
     - smartdns
+    - dnsmasq
+    - adguard_home
   edge:
     - dnsdist
+    - dnscrypt_proxy
   api:
     - godns
     - github_miekg_dns
+    - rfc2136
 
 providers:
   - dnspod_tencent_cloud
   - cloudflare_dns
   - akamai_dns
+  - route53_aws
+  - google_cloud_dns
+  - azure_dns
   - duckdns
   - porkbun
   - caddy_dns
@@ -43,6 +57,28 @@ providers:
   - cloudflare
   - tencent_cloud
 
+features:
+  zone_transfer:
+    - axfr
+    - ixfr
+    - notify
+  dnssec:
+    - dnskey
+    - ds
+    - rrsig
+    - nsec
+    - nsec3
+  routing:
+    - anycast
+    - health_based
+    - latency_based
+    - geo_based
+  protocols:
+    - udp53
+    - tcp53
+    - doh
+    - dot
+
 architecture:
   mode: global_dns_mesh
   anycast_ready: true
@@ -50,10 +86,6 @@ architecture:
   dnssec: true
   ipv4: true
   ipv6: true
-  udp53: true
-  tcp53: true
-  doh: true
-  dot: true
   authoritative_and_recursive_separation: true
   provider_failover: true
 
