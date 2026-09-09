@@ -17,3 +17,19 @@ type BGPSession struct {
 	PrefixesIn uint64 `json:"prefixes_in"`
 	PrefixesOut uint64 `json:"prefixes_out"`
 }
+
+func (s BGPSession) Healthy(requireRPKI bool, maxPrefixes uint64) bool {
+	if s.ID == "" || s.RemoteASN == 0 || !s.Established {
+		return false
+	}
+	if !s.IPv4 && !s.IPv6 {
+		return false
+	}
+	if requireRPKI && !s.RPKIValid {
+		return false
+	}
+	if maxPrefixes > 0 && s.PrefixesIn > maxPrefixes {
+		return false
+	}
+	return true
+}
