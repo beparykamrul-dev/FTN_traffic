@@ -13,8 +13,9 @@ var (
 )
 
 type BFDSession struct { ID string `json:"id"`; Local string `json:"local"`; Remote string `json:"remote"`; MinRxMS uint32 `json:"min_rx_ms"`; MinTxMS uint32 `json:"min_tx_ms"`; Multiplier uint8 `json:"multiplier"`; Up bool `json:"up"`; Authorized bool `json:"authorized"` }
-func (b BFDSession) Validate() error { if !b.Authorized || b.ID=="" { return ErrUnauthorized }; if _,e:=netip.ParseAddr(b.Local); e!=nil{return ErrBFDInvalid}; if _,e:=netip.ParseAddr(b.Remote); e!=nil{return ErrBFDInvalid}; if b.MinRxMS==0||b.MinTxMS==0||b.Multiplier==0{return ErrBFDInvalid}; return nil }
+func (b BFDSession) Validate() error { if !b.Authorized || b.ID=="" { return ErrUnauthorized }; l,e:=netip.ParseAddr(b.Local); if e!=nil{return ErrBFDInvalid}; rr,e:=netip.ParseAddr(b.Remote); if e!=nil||l.Is4()!=rr.Is4(){return ErrBFDInvalid}; if b.MinRxMS==0||b.MinTxMS==0||b.Multiplier==0{return ErrBFDInvalid}; return nil }
 
+// RPKIState represents the validated origin state used by route policy.
 type RPKIState string
 const ( RPKIValid RPKIState="valid"; RPKIInvalid RPKIState="invalid"; RPKIUnknown RPKIState="unknown" )
 func ValidateRPKI(state RPKIState, required bool) error { if required && state!=RPKIValid{return ErrRPKIInvalid}; return nil }
