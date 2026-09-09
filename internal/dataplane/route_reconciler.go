@@ -20,6 +20,9 @@ func (r RouteReconciler) check(ctx context.Context, routes []RouteIntent) error 
 	if !r.Approved {
 		return ErrApprovalRequired
 	}
+	if len(routes) == 0 {
+		return ErrEmptyRouteBatch
+	}
 	if r.Policy != nil {
 		if err := r.Policy.Validate(RouteBatch{Routes: routes, RPKIValid: r.RPKIValid}); err != nil {
 			return err
