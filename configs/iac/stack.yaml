@@ -1,0 +1,50 @@
+version: 1
+service: ftn-iac
+engines:
+  opentofu:
+    enabled: true
+    role: primary_infrastructure_state_owner
+  terraform:
+    enabled: true
+    role: compatible_alternate
+    mutually_exclusive_with: opentofu
+  ansible:
+    enabled: true
+    role: configuration_and_runtime_orchestration
+  opennebula:
+    enabled: true
+    role: private_cloud_compute
+  proxmox:
+    enabled: true
+    role: virtualization_cluster
+ownership:
+  one_state_owner_per_resource_set: true
+  no_parallel_state_owners: true
+policy:
+  secrets_in_git: false
+  destructive_changes_require_approval: true
+  dry_run_required: true
+  idempotent: true
+  audit: true
+  tls_verify: true
+  fail_closed: true
+traffic:
+  global_selection:
+    enabled: true
+    modes:
+      - direct_origin
+      - public_cdn
+      - cdn_contract
+      - partner_edge
+      - ix_peering
+      - internet_transit
+    selection:
+      capability: true
+      health: true
+      latency: true
+      packet_loss: true
+      authorization: true
+      cost: optional
+      locality: true
+    unauthorized_provider_access: deny
+    customer_payload_capture: false
