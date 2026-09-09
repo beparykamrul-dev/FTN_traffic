@@ -1,0 +1,28 @@
+version: 1
+service: ftn-traffic-migration
+runtime_dependency_on_github: false
+strategies:
+  - ecmp
+  - weighted
+  - canary
+  - failover
+  - blue_green
+workflow:
+  - preflight
+  - approval
+  - health_gate
+  - shift
+  - observe
+  - commit
+  - rollback_on_failure
+policy:
+  idempotency_key_required: true
+  approval_required: true
+  authorization_required: true
+  audit_required: true
+  health_gate_required: true
+  automatic_rollback: true
+  fail_closed: true
+security:
+  credentials_in_git: false
+  customer_traffic_interception: false
