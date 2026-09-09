@@ -1,0 +1,91 @@
+version: 1
+service: ftn-full-mesh
+mode: authorized_full_mesh
+
+mesh:
+  topology: full_mesh
+  ipv4: true
+  ipv6: true
+  underlay:
+    encrypted_transport: true
+    mtu_discovery: true
+    path_health_checks: true
+  overlay:
+    routing: bgp_or_provider_neutral
+    ecmp: true
+    multipath: true
+    fast_failover: true
+
+nodes:
+  discovery: control_plane
+  identity_required: true
+  health_required: true
+  peer_authorization_required: true
+  dynamic_membership: true
+
+routing:
+  ebgp: true
+  ibgp: true
+  rpki_validation: required
+  max_prefix_validation: true
+  graceful_restart: true
+  bfd: true
+  communities: true
+  local_preference: true
+  med: true
+  route_reflection: optional
+  route_mutations_require_approval: true
+  unauthorized_route_changes: deny
+
+traffic:
+  load_balance: health_weighted
+  strategies:
+    - ecmp
+    - weighted
+    - canary
+    - failover
+    - blue_green
+  migration:
+    stateful: true
+    idempotency_key_required: true
+    health_gate_required: true
+    automatic_rollback: true
+
+health:
+  node_reachability: true
+  tunnel_health: true
+  bgp_session: true
+  bfd: true
+  packet_loss: true
+  latency: true
+  jitter: true
+  http_origin: true
+  dns: true
+  certificate_expiry: true
+
+observability:
+  prometheus: true
+  flow_telemetry:
+    netflow: true
+    ipfix: true
+    sflow: true
+  metrics:
+    - mesh_nodes
+    - mesh_links
+    - tunnel_state
+    - bgp_sessions
+    - prefixes
+    - route_changes
+    - bytes
+    - packets
+    - latency
+    - packet_loss
+
+security:
+  private_keys_in_git: false
+  provider_credentials_in_git: false
+  customer_traffic_interception: false
+  third_party_private_access: authorized_only
+  admin_api_private: true
+  audit_required: true
+  destructive_changes_require_approval: true
