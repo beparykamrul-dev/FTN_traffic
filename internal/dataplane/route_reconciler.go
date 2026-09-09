@@ -7,6 +7,7 @@ type RouteReconciler struct {
 	Authorized bool
 	Approved   bool
 	Policy     *RoutePolicy
+	RPKIValid  bool
 }
 
 func (r RouteReconciler) check(ctx context.Context, routes []RouteIntent) error {
@@ -20,7 +21,7 @@ func (r RouteReconciler) check(ctx context.Context, routes []RouteIntent) error 
 		return ErrApprovalRequired
 	}
 	if r.Policy != nil {
-		if err := r.Policy.Validate(RouteBatch{Routes: routes, RPKIValid: true}); err != nil {
+		if err := r.Policy.Validate(RouteBatch{Routes: routes, RPKIValid: r.RPKIValid}); err != nil {
 			return err
 		}
 	} else if err := ValidateRoutes(routes); err != nil {
