@@ -4,9 +4,7 @@ providers:
     kind: dynamic_dns
     api: duckdns
     credential_ref: secret://ddns/duckdns
-    supports:
-      - A
-      - AAAA
+    supports: [A, AAAA]
     policy:
       authorization_required: true
       approval_required: true
@@ -16,11 +14,7 @@ providers:
     kind: authoritative_dns
     api: porkbun
     credential_ref: secret://ddns/porkbun
-    supports:
-      - A
-      - AAAA
-      - CNAME
-      - TXT
+    supports: [A, AAAA, CNAME, TXT]
     policy:
       authorization_required: true
       approval_required: true
@@ -30,11 +24,23 @@ providers:
     kind: dns_provider_adapter
     integration: caddy-dns
     credential_ref: secret://ddns/caddy-dns
-    supports:
-      - provider_specific
+    supports: [provider_specific]
     policy:
       authorization_required: true
       approval_required: true
+      credentials_in_git: false
+
+  route53_aws:
+    kind: authoritative_dns
+    api: aws_route53
+    credential_ref: secret://ddns/route53
+    zone_id_ref: secret://ddns/route53/zone_id
+    region_env: AWS_REGION
+    supports: [A, AAAA, CNAME, TXT, CAA]
+    policy:
+      authorization_required: true
+      approval_required: true
+      least_privilege: true
       credentials_in_git: false
 
 execution:
@@ -42,3 +48,4 @@ execution:
   fail_closed_on_missing_credentials: true
   no_plaintext_secrets_in_logs: true
   audit_mutations: true
+  idempotency_key: request_id
