@@ -42,6 +42,10 @@ providers:
       approval_required: true
       least_privilege: true
       credentials_in_git: false
+      recommended_actions:
+        - route53:ChangeResourceRecordSets
+        - route53:GetHostedZone
+        - route53:ListResourceRecordSets
 
 execution:
   mode: provider_neutral
