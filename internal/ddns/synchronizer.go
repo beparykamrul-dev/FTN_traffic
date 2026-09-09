@@ -2,7 +2,6 @@ package ddns
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"strings"
 	"time"
@@ -52,5 +51,3 @@ func (s *Synchronizer) Apply(ctx context.Context, u Update, targets []ProviderTa
 func recordType(address string) string {
 	ip := net.ParseIP(strings.TrimSpace(address)); if ip != nil && ip.To4() == nil { return "AAAA" }; return "A"
 }
-
-var _ = fmt.Sprintf
