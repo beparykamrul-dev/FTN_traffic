@@ -1,6 +1,6 @@
 # FTN Proxmox Grid / IaC Architecture
 
-This document carries forward the requirements recorded in `FTN up.txt` and turns them into the FTN_traffic architecture and source tree.
+This document carries forward the requirements extracted from the former `FTN up.txt` archive and turns them into the FTN_traffic architecture and source tree. The source archive was removed after extraction; this normalized contract is the retained implementation reference.
 
 ## 1. Network and VLAN layer
 
@@ -25,7 +25,7 @@ This document carries forward the requirements recorded in `FTN up.txt` and turn
 
 ## 4. Automation / IaC
 
-The repository now retains all IaC families requested in `FTN up.txt`:
+The repository retains the IaC families requested by the extracted requirements:
 
 - OpenTofu/Terraform-compatible Proxmox provisioning: `infra/opentofu/`
 - Ansible configuration/orchestration: `infra/ansible/`
@@ -40,7 +40,7 @@ The intended monitoring layer includes Prometheus/Node Exporter and Grafana, wit
 
 ## 6. Alternative control planes retained from the source requirements
 
-The source requirements also mentioned Proxmox Datacenter Manager, Cockpit, Portainer, Apache CloudStack and OpenNebula. They are treated as optional control/orchestration integrations rather than mandatory replacements for Proxmox VE.
+The extracted requirements also mentioned Proxmox Datacenter Manager, Cockpit, Portainer, Apache CloudStack and OpenNebula. They are treated as optional control/orchestration integrations rather than mandatory replacements for Proxmox VE.
 
 The FTN control plane should prefer a single authoritative lifecycle path for Proxmox resources and use read-only integrations where another platform would otherwise create conflicting state.
 
@@ -54,4 +54,4 @@ The FTN control plane should prefer a single authoritative lifecycle path for Pr
 
 ## 8. Source preservation
 
-`FTN up.txt` remains in the repository as the original requirement archive. This document is the normalized implementation contract; it does not delete the original material.
+The original `FTN up.txt` archive was removed from Git after its requirements were extracted into this normalized contract and the IaC source tree. No claim is made that the original source file remains in the repository.
