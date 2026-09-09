@@ -12,46 +12,26 @@ type RouteReconciler struct {
 }
 
 func (r RouteReconciler) check(ctx context.Context, routes []RouteIntent) error {
-	if r.Router == nil {
-		return ErrBackendUnavailable
-	}
-	if !r.Authorized {
-		return ErrUnauthorized
-	}
-	if !r.Approved {
-		return ErrApprovalRequired
-	}
-	if len(routes) == 0 {
-		return ErrEmptyRouteBatch
-	}
+	if r.Router == nil { return ErrBackendUnavailable }
+	if !r.Authorized { return ErrUnauthorized }
+	if !r.Approved { return ErrApprovalRequired }
+	if len(routes) == 0 { return ErrEmptyRouteBatch }
 	if r.BFD != nil {
-		if err := ValidateBFD(*r.BFD); err != nil {
-			return err
-		}
-		if !r.BFD.Up {
-			return ErrBFDInvalid
-		}
+		if err := ValidateBFDPolicy(*r.BFD); err != nil { return err }
 	}
+	routes = NormalizeRouteBatch(routes)
 	if r.Policy != nil {
-		if err := r.Policy.Validate(RouteBatch{Routes: routes, RPKIValid: r.RPKIValid}); err != nil {
-			return err
-		}
-	} else if err := ValidateRoutes(routes); err != nil {
-		return err
-	}
+		if err := r.Policy.Validate(RouteBatch{Routes: routes, RPKIValid: r.RPKIValid}); err != nil { return err }
+	} else if err := ValidateRoutes(routes); err != nil { return err }
 	return r.Router.Health(ctx)
 }
 
 func (r RouteReconciler) Apply(ctx context.Context, desired []RouteIntent) error {
-	if err := r.check(ctx, desired); err != nil {
-		return err
-	}
-	return r.Router.ApplyRoutes(ctx, desired)
+	if err := r.check(ctx, desired); err != nil { return err }
+	return r.Router.ApplyRoutes(ctx, NormalizeRouteBatch(desired))
 }
 
 func (r RouteReconciler) Withdraw(ctx context.Context, routes []RouteIntent) error {
-	if err := r.check(ctx, routes); err != nil {
-		return err
-	}
-	return r.Router.WithdrawRoutes(ctx, routes)
+	if err := r.check(ctx, routes); err != nil { return err }
+	return r.Router.WithdrawRoutes(ctx, NormalizeRouteBatch(routes))
 }
