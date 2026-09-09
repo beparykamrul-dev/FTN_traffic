@@ -2,6 +2,7 @@ package dataplane
 
 import (
 	"context"
+	"math"
 	"testing"
 )
 
@@ -30,7 +31,7 @@ func TestTelemetrySinkRejectsControlCharacters(t *testing.T) {
 func TestTelemetrySinkRejectsNaNAndOversizedLabels(t *testing.T) {
 	b := &testTelemetry{healthy:true}
 	s := TelemetrySink{Backend:b}
-	if err := s.Publish(context.Background(), Metric{Name:"ftn_test", Value:0.0/0.0}); err == nil { t.Fatal("expected NaN rejection") }
+	if err := s.Publish(context.Background(), Metric{Name:"ftn_test", Value:math.NaN()}); err != ErrInvalidMetric { t.Fatalf("got %v", err) }
 	long := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 	if err := s.Publish(context.Background(), Metric{Name:"ftn_test", Value:1, Labels:map[string]string{"site":long}}); err != ErrInvalidMetric { t.Fatalf("got %v", err) }
 }
