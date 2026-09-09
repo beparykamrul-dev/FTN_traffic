@@ -1,0 +1,37 @@
+version: 1
+service: ftn-local-dataplane
+runtime_dependency_on_github: false
+routing:
+  primary: frr
+  alternatives: [bird, gobgp]
+  address_families: [ipv4, ipv6]
+  rpki_required: true
+  max_prefix_required: true
+  bfd_recommended: true
+  ecmp: true
+kernel:
+  tools: [iproute2, tc]
+  firewall: nftables
+  acceleration: [ebpf, xdp]
+edge:
+  proxy: [haproxy, envoy]
+  cache: [apache_traffic_server, varnish]
+dns:
+  recursive: unbound
+  authoritative: coredns
+  control: dnsdist
+flow:
+  collectors: [goflow2, pmacct, nfdump]
+observability:
+  metrics: prometheus
+  tracing: opentelemetry
+  logs: loki
+transport:
+  encrypted_overlay: wireguard
+policy:
+  local_runtime_only: true
+  credentials_in_git: false
+  customer_payload_capture: false
+  mutations_require_approval: true
+  unauthorized_access: deny
+  fail_closed: true
