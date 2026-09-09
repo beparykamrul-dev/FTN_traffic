@@ -1,6 +1,9 @@
 package dataplane
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type RouteOrchestrator struct {
 	Reconciler RouteReconciler
@@ -11,10 +14,16 @@ type RouteOrchestrator struct {
 	ApprovalID string
 }
 
+func (o RouteOrchestrator) validateMutationMetadata() error {
+	if o.Auditor == nil || o.Actor == "" || o.RequestID == "" || o.ApprovalID == "" { return fmt.Errorf("route mutation metadata incomplete") }
+	return nil
+}
+
 func (o RouteOrchestrator) Apply(ctx context.Context, routes []RouteIntent) error {
+	if err := o.validateMutationMetadata(); err != nil { return err }
 	normalized, err := NormalizeRoutes(routes); if err != nil { return err }
+	if err := ValidateRouteSetForMutation(normalized); err != nil { return err }
 	if err := o.Health.Check(ctx); err != nil { return err }
-	o.Reconciler.RPKIValid = o.Reconciler.RPKIValid
 	err = o.Reconciler.Apply(ctx, normalized)
 	result := "success"; if err != nil { result = "failed" }
 	if auditErr := AuditMutation(ctx, o.Auditor, AuditEvent{Action:"route.orchestrate.apply", Resource:"route", Actor:o.Actor, RequestID:o.RequestID, ApprovalID:o.ApprovalID, Result:result}); auditErr != nil && err == nil { return auditErr }
@@ -22,7 +31,9 @@ func (o RouteOrchestrator) Apply(ctx context.Context, routes []RouteIntent) erro
 }
 
 func (o RouteOrchestrator) Withdraw(ctx context.Context, routes []RouteIntent) error {
+	if err := o.validateMutationMetadata(); err != nil { return err }
 	normalized, err := NormalizeRoutes(routes); if err != nil { return err }
+	if err := ValidateRouteSetForMutation(normalized); err != nil { return err }
 	if err := o.Health.Check(ctx); err != nil { return err }
 	err = o.Reconciler.Withdraw(ctx, normalized)
 	result := "success"; if err != nil { result = "failed" }
