@@ -1,0 +1,23 @@
+version: 1
+service: ftn-local-routing
+runtime_dependency_on_github: false
+backends:
+  frr:
+    binary: vtysh
+    enabled: true
+  bird:
+    binary: birdc
+    enabled: true
+  gobgp:
+    binary: gobgp
+    enabled: true
+kernel:
+  binary: ip
+  route_mutations_require_approval: true
+policy:
+  authorization_required: true
+  rpki_required_for_public_prefixes: true
+  max_prefix_required: true
+  customer_payload_capture: false
+  credentials_in_git: false
+  fail_closed: true
