@@ -1,0 +1,39 @@
+version: 1
+backends:
+  routing:
+    - frr
+    - bird
+    - gobgp
+  firewall:
+    - nftables
+  kernel:
+    - iproute2
+    - tc
+    - ebpf
+    - xdp
+  edge:
+    - haproxy
+    - envoy
+    - apache_traffic_server
+    - varnish
+  dns:
+    - unbound
+    - coredns
+    - powerdns_authoritative
+    - dnsdist
+  flow:
+    - goflow2
+    - pmacct
+    - nfdump
+  telemetry:
+    - prometheus
+    - opentelemetry
+    - loki
+  transport:
+    - wireguard
+selection:
+  routing: health_and_capability
+  edge: health_and_latency
+  dns: health_and_authorization
+  flow: local_only
+  telemetry: local_first

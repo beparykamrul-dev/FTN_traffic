@@ -1,0 +1,20 @@
+version: 1
+service: ftn-traffic-open-source-stack
+runtime_dependency_on_github: false
+components:
+  routing: [frr, bird, gobgp]
+  kernel_dataplane: [iproute2, nftables, tc, ebpf, xdp]
+  proxy_edge: [haproxy, envoy]
+  cache_edge: [apache_traffic_server, varnish, nginx]
+  dns: [unbound, coredns, powerdns_authoritative, dnsdist]
+  flow: [goflow2, pmacct, nfdump]
+  telemetry: [prometheus, opentelemetry, loki]
+  secure_transport: [wireguard]
+  orchestration: [ftn_traffic_controller]
+policy:
+  source_runtime_local: true
+  provider_credentials_in_git: false
+  customer_payload_capture: false
+  route_mutations_require_approval: true
+  third_party_access_authorized_only: true
+  fail_closed: true
