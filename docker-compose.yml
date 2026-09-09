@@ -6,3 +6,40 @@ services:
       FTN_TRAFFIC_ADDR: ":8080"
     ports:
       - "8080:8080"
+
+  ftn-dns:
+    image: mvance/unbound:1.22.0
+    restart: unless-stopped
+    volumes:
+      - ./configs/dns/unbound:/opt/unbound/etc/unbound:ro
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    healthcheck:
+      test: ["CMD-SHELL", "drill @127.0.0.1 cloudflare.com A >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--config.expand-env=true"
+      - "--storage.tsdb.retention.time=15d"
+    environment:
+      GRAFANA_CLOUD_PROMETHEUS_URL: ${GRAFANA_CLOUD_PROMETHEUS_URL:-}
+      GRAFANA_CLOUD_USER: ${GRAFANA_CLOUD_USER:-}
+      GRAFANA_CLOUD_API_KEY: ${GRAFANA_CLOUD_API_KEY:-}
+    volumes:
+      - ./configs/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - ftn-traffic
+      - ftn-dns
+
+volumes:
+  prometheus_data:
