@@ -1,0 +1,23 @@
+version: 1
+service: ftn-routing-backends
+runtime: local
+backends:
+  frr:
+    binary: vtysh
+    role: bgp
+  bird:
+    binary: birdc
+    role: bgp
+  gobgp:
+    binary: gobgp
+    role: bgp
+  kernel:
+    binary: ip
+    role: routes
+policy:
+  command_allowlist: [vtysh, birdc, gobgp, ip]
+  route_mutations_require_approval: true
+  authorization_required: true
+  rpki_required_for_public_prefixes: true
+  max_prefix_validation: true
+  credentials_in_git: false
