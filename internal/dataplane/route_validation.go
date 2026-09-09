@@ -7,11 +7,10 @@ import (
 )
 
 var (
-	ErrInvalidPrefix      = errors.New("invalid route prefix")
-	ErrInvalidNextHop     = errors.New("invalid next-hop")
-	ErrRouteUnauthorized  = errors.New("route intent unauthorized")
+	ErrInvalidPrefix       = errors.New("invalid route prefix")
+	ErrInvalidNextHop      = errors.New("invalid next-hop")
+	ErrRouteUnauthorized   = errors.New("route intent unauthorized")
 	ErrRouteFamilyMismatch = errors.New("route address-family mismatch")
-	ErrEmptyRouteBatch    = errors.New("route batch is empty")
 )
 
 func ValidateRoute(r RouteIntent) error {
