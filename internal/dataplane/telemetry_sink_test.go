@@ -19,3 +19,10 @@ func TestTelemetrySinkValidatesAndHealthChecks(t *testing.T) {
 	b.healthy=false
 	if err := s.Publish(context.Background(), Metric{Name:"ftn_test", Value:2}); err != ErrBackendUnavailable { t.Fatalf("got %v", err) }
 }
+
+func TestTelemetrySinkRejectsControlCharacters(t *testing.T) {
+	b := &testTelemetry{healthy:true}
+	s := TelemetrySink{Backend:b}
+	if err := s.Publish(context.Background(), Metric{Name:"ftn_test", Value:1, Labels:map[string]string{"site":"pop\n1"}}); err != ErrInvalidMetric { t.Fatalf("got %v", err) }
+	if b.published != 0 { t.Fatalf("invalid metric was published: %d", b.published) }
+}
