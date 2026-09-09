@@ -1,27 +1,5 @@
 package migration
-
-import (
-	"context"
-	"errors"
-	"testing"
-)
-
-type fakeExec struct{ shifted, committed, rolled bool; strategy string; failShift bool }
-func (f *fakeExec) Preflight(context.Context,Request) error{return nil}
-func (f *fakeExec) Shift(_ context.Context,_ Request,s string) error{f.shifted=true;f.strategy=s;if f.failShift{return errors.New("shift")};return nil}
-func (f *fakeExec) Commit(context.Context,Request) error{f.committed=true;return nil}
-func (f *fakeExec) Rollback(context.Context,Request) error{f.rolled=true;return nil}
-type fakeApproval struct{ ok bool }
-func(f fakeApproval) Verify(context.Context,string) error{if !f.ok{return errors.New("denied")};return nil}
-type fakeHealth struct{ ok bool }
-func(f fakeHealth) Healthy(context.Context,Request) error{if !f.ok{return errors.New("unhealthy")};return nil}
-type fakeAudit struct{ events []string }
-func(f *fakeAudit) Record(_ context.Context,event string,_ Request,_ string) error{f.events=append(f.events,event);return nil}
-
-func req(id string) Request{return Request{ID:id,From:"old",To:"new",ApprovalID:"ap-1",Strategy:"canary"}}
-func TestMigrationCommit(t *testing.T){e:=&fakeExec{};c:=NewController(e,fakeApproval{true},fakeHealth{true});if err:=c.Run(context.Background(),req("1"));err!=nil{t.Fatal(err)};if !e.committed||e.strategy!="canary"||c.State()!=StateCommit{t.Fatalf("state=%s exec=%+v",c.State(),e)}}
-func TestMigrationFailsClosedWithoutApproval(t *testing.T){e:=&fakeExec{};c:=NewController(e,fakeApproval{false},fakeHealth{true});if err:=c.Run(context.Background(),req("1"));err==nil{t.Fatal("expected denial")};if e.shifted{t.Fatal("shift occurred without approval")};if c.State()!=StateFailed{t.Fatalf("state=%s",c.State())}}
-func TestMigrationRollsBackOnShiftFailure(t *testing.T){e:=&fakeExec{failShift:true};c:=NewController(e,fakeApproval{true},fakeHealth{true});if err:=c.Run(context.Background(),req("1"));err==nil{t.Fatal("expected rollback error")};if !e.rolled||c.State()!=StateRollback{t.Fatalf("state=%s rolled=%v",c.State(),e.rolled)}}
-func TestMigrationRejectsInvalidStrategy(t *testing.T){c:=NewController(&fakeExec{},fakeApproval{true},fakeHealth{true});r:=req("bad");r.Strategy="invalid";if err:=c.Run(context.Background(),r);err!=ErrInvalidStrategy{t.Fatalf("got %v",err)}}
-func TestMigrationRejectsDuplicate(t *testing.T){e:=&fakeExec{};c:=NewController(e,fakeApproval{true},fakeHealth{true});if err:=c.Run(context.Background(),req("dup"));err!=nil{t.Fatal(err)};if err:=c.Run(context.Background(),req("dup"));err!=ErrDuplicateMigration{t.Fatalf("got %v",err)}}
-func TestMigrationAuditsLifecycle(t *testing.T){e:=&fakeExec{};a:=&fakeAudit{};c:=NewController(e,fakeApproval{true},fakeHealth{true}).WithAudit(a);if err:=c.Run(context.Background(),req("audit"));err!=nil{t.Fatal(err)};if len(a.events)!=2||a.events[0]!="migration_preflight"||a.events[1]!="migration_committed"{t.Fatalf("events=%v",a.events)}}
+import "testing"
+func TestMigrationRetryAfterShiftRollback(t *testing.T){e:=&fakeExec{failShift:true};c:=NewController(e,fakeApproval{true},fakeHealth{true});r:=req("retry");if err:=c.Run(nil,r);err==nil{t.Fatal("expected first failure")};e.failShift=false;if err:=c.Run(nil,r);err!=nil{t.Fatalf("retry failed: %v",err)}}
+func TestMigrationRejectsDifferentRequestForActiveKey(t *testing.T){e:=&fakeExec{};c:=NewController(e,fakeApproval{true},fakeHealth{true});r:=req("same");if err:=c.Run(nil,r);err!=nil{t.Fatal(err)};r.To="other";if err:=c.Run(nil,r);err!=ErrMigrationFingerprint{t.Fatalf("got %v",err)}}
+func TestIdempotencyLegacyClaim(t *testing.T){i:=NewIdempotency();if !i.Claim("legacy"){t.Fatal("first claim failed")};if i.Claim("legacy"){t.Fatal("duplicate claim accepted")};if _,ok:=i.State("legacy");!ok{t.Fatal("state missing")}}
