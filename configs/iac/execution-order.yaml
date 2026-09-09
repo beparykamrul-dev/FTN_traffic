@@ -1,0 +1,35 @@
+version: 1
+pipeline:
+  - stage: image
+    tool: packer
+    purpose: build_immutable_base_images
+  - stage: infrastructure
+    tool: opentofu
+    purpose: networks_compute_storage
+    state_owner: true
+  - stage: infrastructure_alternate
+    tool: terraform
+    purpose: compatible_alternate_only
+    state_owner: false
+  - stage: private_cloud
+    tool: opennebula
+    purpose: workload_cloud_orchestration
+  - stage: virtualization
+    tool: proxmox
+    purpose: vm_cluster
+  - stage: configuration
+    tool: ansible
+    purpose: os_services_firewall_runtime
+  - stage: observability
+    tool: prometheus_grafana
+    purpose: metrics_and_dashboards
+  - stage: external_observability
+    tool: grafana_cloud
+    purpose: optional_remote_metrics
+rules:
+  terraform_and_opentofu_same_state: deny
+  parallel_state_mutation: deny
+  destructive_changes_without_approval: deny
+  missing_health_gate: deny
+  missing_authorization: deny
+  credentials_in_repo: deny
