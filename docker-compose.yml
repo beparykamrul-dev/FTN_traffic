@@ -1,0 +1,8 @@
+services:
+  ftn-traffic:
+    build: .
+    restart: unless-stopped
+    environment:
+      FTN_TRAFFIC_ADDR: ":8080"
+    ports:
+      - "8080:8080"
