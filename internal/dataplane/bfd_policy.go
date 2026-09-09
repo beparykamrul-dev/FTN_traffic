@@ -1,7 +1,11 @@
 package dataplane
 
+import "net/netip"
+
 func ValidateBFD(s BFDSession) error {
 	if err := s.Validate(); err != nil { return err }
-	if s.Local == s.Remote { return ErrBFDInvalid }
+	local, _ := netip.ParseAddr(s.Local)
+	remote, _ := netip.ParseAddr(s.Remote)
+	if local == remote { return ErrBFDInvalid }
 	return nil
 }
