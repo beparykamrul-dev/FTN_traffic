@@ -24,3 +24,8 @@ func TestAdvancedControlsRejectUnauthorizedAndInvalidRanges(t *testing.T) {
 	if err:=(VLAN{ID:4095,Parent:"eth0",Authorized:true}).Validate();err!=ErrVLANInvalid{t.Fatalf("expected VLAN range error, got %v",err)}
 	if err:=(VRF{Name:"customer-a",Table:1001,Authorized:false}).Validate();err!=ErrVRFInvalid{t.Fatalf("expected VRF authorization error, got %v",err)}
 }
+
+func TestBFDRejectsZeroTimers(t *testing.T) {
+	b:=BFDSession{ID:"b2",Local:"192.0.2.1",Remote:"192.0.2.2",MinRxMS:0,MinTxMS:50,Multiplier:3,Authorized:true}
+	if err:=b.Validate();err!=ErrBFDInvalid{t.Fatalf("expected timer error, got %v",err)}
+}
