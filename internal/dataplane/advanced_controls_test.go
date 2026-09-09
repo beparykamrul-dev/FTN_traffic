@@ -1,0 +1,12 @@
+package dataplane
+
+import "testing"
+
+func TestAdvancedControls(t *testing.T) {
+ if err:=ValidateRPKI(RPKIValid,true);err!=nil{t.Fatal(err)}
+ if err:=ValidateRPKI(RPKIInvalid,true);err!=ErrRPKIInvalid{t.Fatalf("got %v",err)}
+ if err:=(VLAN{ID:100,Parent:"eth0",Authorized:true}).Validate();err!=nil{t.Fatal(err)}
+ if err:=(VRF{Name:"customer-a",Table:1001,Authorized:true}).Validate();err!=nil{t.Fatal(err)}
+ if err:=(QoSPolicy{ID:"gold",RateMbps:100,BurstKB:64,DSCP:[]uint8{46},Authorized:true}).Validate();err!=nil{t.Fatal(err)}
+ if err:=(NATPolicy{ID:"nat-a",SourcePrefix:"10.0.0.0/24",EgressInterface:"wan0",Authorized:true}).Validate();err!=nil{t.Fatal(err)}
+}
