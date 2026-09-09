@@ -10,3 +10,12 @@ func TestAdvancedControls(t *testing.T) {
  if err:=(QoSPolicy{ID:"gold",RateMbps:100,BurstKB:64,DSCP:[]uint8{46},Authorized:true}).Validate();err!=nil{t.Fatal(err)}
  if err:=(NATPolicy{ID:"nat-a",SourcePrefix:"10.0.0.0/24",EgressInterface:"wan0",Authorized:true}).Validate();err!=nil{t.Fatal(err)}
 }
+
+func TestBFDRejectsMixedAddressFamilies(t *testing.T) {
+ b:=BFDSession{ID:"b1",Local:"192.0.2.1",Remote:"2001:db8::1",MinRxMS:300,MinTxMS:300,Multiplier:3,Authorized:true}
+ if err:=b.Validate();err!=ErrBFDInvalid{t.Fatalf("expected BFD family error, got %v",err)}
+}
+
+func TestRPKIRequiredRejectsUnknown(t *testing.T) {
+ if err:=ValidateRPKI(RPKIUnknown,true);err!=ErrRPKIInvalid{t.Fatalf("expected RPKI error, got %v",err)}
+}
