@@ -1,0 +1,25 @@
+version: 1
+service: ftn-observability
+grafana_cloud:
+  enabled: true
+  remote_write: true
+  endpoint_from_secret: GRAFANA_CLOUD_REMOTE_WRITE_URL
+  credentials_from_secret: GRAFANA_CLOUD_API_TOKEN
+  tls_verify: true
+  external_labels:
+    stack: ftn
+    plane: observability
+  send:
+    metrics: true
+    logs: false
+    traces: false
+  policy:
+    secrets_in_config: false
+    secrets_in_telemetry: false
+    customer_payloads: false
+    approval_required_for_config_changes: true
+    fail_closed: true
+local_fallback:
+  prometheus: true
+  retain_local: true
+  remote_write_failure_does_not_mutate_dataplane: true
