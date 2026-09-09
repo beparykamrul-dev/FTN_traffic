@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"regexp"
 	"strings"
 )
 
@@ -14,22 +15,26 @@ type TelemetryBackend interface {
 }
 
 type Metric struct {
-	Name string `json:"name"`
-	Value float64 `json:"value"`
+	Name   string            `json:"name"`
+	Value  float64           `json:"value"`
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
-var ErrInvalidMetric = errors.New("invalid telemetry metric")
+var (
+	ErrInvalidMetric = errors.New("invalid telemetry metric")
+	metricNameRE     = regexp.MustCompile(`^[a-zA-Z_:][a-zA-Z0-9_:]*$`)
+	labelNameRE      = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+)
 
 func ValidateMetric(m Metric) error {
-	if strings.TrimSpace(m.Name) == "" || strings.ContainsAny(m.Name, "\n\r") {
+	if !metricNameRE.MatchString(strings.TrimSpace(m.Name)) || strings.ContainsAny(m.Name, "\n\r") {
 		return ErrInvalidMetric
 	}
 	if math.IsNaN(m.Value) || math.IsInf(m.Value, 0) {
 		return ErrInvalidMetric
 	}
 	for k, v := range m.Labels {
-		if strings.TrimSpace(k) == "" || strings.ContainsAny(k+v, "\n\r") {
+		if !labelNameRE.MatchString(k) || strings.ContainsAny(k+v, "\n\r") {
 			return ErrInvalidMetric
 		}
 	}
