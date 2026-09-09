@@ -4,11 +4,9 @@ func ValidateRouteCommunities(r RouteIntent) error {
 	return ValidateCommunities(r.Community)
 }
 
-func ValidateRouteWithPolicy(r RouteIntent, policy RoutePolicy) error {
+func ValidateRouteWithRPKI(r RouteIntent, rpkiValid bool) error {
 	if err := ValidateRoute(r); err != nil { return err }
 	if err := ValidateRouteCommunities(r); err != nil { return err }
-	if policy.RequireRPKI {
-		return ErrRPKIRequired
-	}
+	if !rpkiValid { return ErrRPKIRequired }
 	return nil
 }
