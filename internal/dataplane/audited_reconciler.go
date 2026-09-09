@@ -2,9 +2,20 @@ package dataplane
 
 import "context"
 
-type AuditedReconciler struct { Reconciler RouteReconciler; Auditor Auditor; Actor string; RequestID string; ApprovalID string }
+type AuditedReconciler struct {
+	Reconciler RouteReconciler
+	Auditor Auditor
+	Actor string
+	RequestID string
+	ApprovalID string
+}
+
+func (r AuditedReconciler) metadata() error {
+	return (MutationMetadata{Actor:r.Actor, RequestID:r.RequestID, ApprovalID:r.ApprovalID}).Validate()
+}
 
 func (r AuditedReconciler) Apply(ctx context.Context, routes []RouteIntent) error {
+	if err := r.metadata(); err != nil { return err }
 	err := r.Reconciler.Apply(ctx, routes)
 	result := "success"
 	if err != nil { result = "failed" }
@@ -13,6 +24,7 @@ func (r AuditedReconciler) Apply(ctx context.Context, routes []RouteIntent) erro
 }
 
 func (r AuditedReconciler) Withdraw(ctx context.Context, routes []RouteIntent) error {
+	if err := r.metadata(); err != nil { return err }
 	err := r.Reconciler.Withdraw(ctx, routes)
 	result := "success"
 	if err != nil { result = "failed" }
