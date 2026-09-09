@@ -1,0 +1,24 @@
+flow:
+  protocols:
+    - netflow
+    - ipfix
+    - sflow
+  dimensions:
+    - source_asn
+    - destination_asn
+    - source_prefix
+    - destination_prefix
+    - pop
+    - interface
+    - protocol
+  telemetry:
+    bytes: true
+    packets: true
+    top_talkers: true
+    provider_accounting: true
+  retention:
+    raw_records: short
+    aggregates: long
+  privacy:
+    payload_capture: false
+    customer_content_capture: false
