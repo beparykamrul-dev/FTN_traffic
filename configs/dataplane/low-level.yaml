@@ -5,7 +5,9 @@ kernel:
   routing: iproute2
   qos: tc
   firewall: nftables
-  acceleration: [ebpf, xdp]
+  acceleration:
+    - ebpf
+    - xdp
 routing:
   bfd: required_at_routing_boundary
   rpki: required_for_public_prefixes
