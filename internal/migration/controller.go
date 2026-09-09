@@ -20,7 +20,6 @@ const (
 
 var ErrInvalidStrategy = errors.New("invalid migration strategy")
 var ErrDuplicateMigration = errors.New("duplicate migration idempotency key")
-
 var allowedStrategies = map[string]struct{}{"ecmp":{},"weighted":{},"canary":{},"failover":{},"blue_green":{}}
 
 type Request struct { ID, From, To, ApprovalID string; Strategy string }
@@ -28,17 +27,17 @@ type Executor interface { Preflight(context.Context, Request) error; Shift(conte
 type ApprovalVerifier interface { Verify(context.Context, string) error }
 type HealthGate interface { Healthy(context.Context, Request) error }
 type Auditor interface { Record(context.Context, string, Request, string) error }
-
 type Controller struct { mu sync.Mutex; state State; exec Executor; approval ApprovalVerifier; health HealthGate; audit Auditor; idempotency *Idempotency }
 func NewController(e Executor, a ApprovalVerifier, h HealthGate) *Controller { return &Controller{state:StatePreflight,exec:e,approval:a,health:h,idempotency:NewIdempotency()} }
 func (c *Controller) WithAudit(a Auditor) *Controller { c.audit=a; return c }
 func (c *Controller) State() State { c.mu.Lock(); defer c.mu.Unlock(); return c.state }
 func (c *Controller) set(s State) { c.state=s }
-func (c *Controller) record(ctx context.Context, event string, r Request, detail string) { if c.audit != nil { _ = c.audit.Record(ctx,event,r,detail) } }
-func (c *Controller) Run(ctx context.Context, r Request) error {
-	if r.ID=="" || r.From=="" || r.To=="" || r.ApprovalID=="" { return errors.New("migration id, source, destination and approval are required") }
+func (c *Controller) record(ctx context.Context,event string,r Request,detail string) { if c.audit != nil { _=c.audit.Record(ctx,event,r,detail) } }
+func (c *Controller) Run(ctx context.Context,r Request) error {
+	if r.ID==""||r.From==""||r.To==""||r.ApprovalID=="" { return errors.New("migration id, source, destination and approval are required") }
+	if r.From==r.To { return errors.New("migration source and destination must differ") }
 	if _,ok:=allowedStrategies[r.Strategy]; !ok { return ErrInvalidStrategy }
-	if c.exec==nil || c.approval==nil || c.health==nil { return errors.New("migration dependencies are incomplete") }
+	if c.exec==nil||c.approval==nil||c.health==nil||c.idempotency==nil { return errors.New("migration dependencies are incomplete") }
 	if !c.idempotency.Claim(r.ID) { return ErrDuplicateMigration }
 	c.mu.Lock(); c.set(StatePreflight); c.mu.Unlock(); c.record(ctx,"migration_preflight",r,"")
 	if err:=c.approval.Verify(ctx,r.ApprovalID); err!=nil { c.mu.Lock(); c.set(StateFailed); c.mu.Unlock(); c.record(ctx,"migration_denied",r,err.Error()); return fmt.Errorf("approval denied: %w",err) }
