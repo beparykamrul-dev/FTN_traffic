@@ -1,0 +1,25 @@
+version: 1
+service: ftn-dataplane-low-level
+runtime_dependency_on_github: false
+kernel:
+  routing: iproute2
+  qos: tc
+  firewall: nftables
+  acceleration: [ebpf, xdp]
+routing:
+  bfd: required_at_routing_boundary
+  rpki: required_for_public_prefixes
+  ecmp: enabled
+  multipath: enabled
+  ipv4: true
+  ipv6: true
+segmentation:
+  vrf: enabled
+  vlan: enabled
+  qinq: supported
+policy:
+  mutations_require_approval: true
+  authorization_required: true
+  customer_payload_capture: false
+  credentials_in_git: false
+  fail_closed: true
