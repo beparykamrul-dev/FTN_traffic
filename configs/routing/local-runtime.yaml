@@ -1,0 +1,15 @@
+version: 1
+service: ftn-local-runtime
+runtime: local
+backends:
+  linux: [iproute2, tc, nftables]
+  bgp: [frr, bird, gobgp]
+read_only_discovery: true
+mutations:
+  authorization_required: true
+  approval_required: true
+  fail_closed: true
+security:
+  shell_execution: false
+  credentials_in_git: false
+  customer_traffic_interception: false
