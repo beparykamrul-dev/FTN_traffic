@@ -1,0 +1,28 @@
+version: 1
+open_source:
+  cache:
+    - apache_traffic_server
+    - varnish
+    - nginx
+  proxy:
+    - haproxy
+    - envoy
+  routing:
+    - gobgp
+    - bird
+  telemetry:
+    - prometheus
+    - grafana
+    - loki
+    - opentelemetry
+  flow:
+    - nfdump
+    - pmacct
+    - yaf
+
+policy:
+  third_party_traffic_access: authorized_only
+  customer_traffic_interception: false
+  provider_credentials_in_git: false
+  route_mutations_require_approval: true
+  edge_mutations_require_approval: true
