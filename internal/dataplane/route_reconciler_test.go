@@ -12,9 +12,9 @@ func (r *reconcileRouter) Kind() RouterKind { return RouterFRR }
 func (r *reconcileRouter) Health(context.Context) error { return r.healthErr }
 func (r *reconcileRouter) ApplyRoutes(context.Context, []RouteIntent) error { r.applied = true; return nil }
 func (r *reconcileRouter) WithdrawRoutes(context.Context, []RouteIntent) error { r.withdrawn = true; return nil }
-func (r *reconcileRouter) Snapshot(context.Context) ([]RouteIntent, error) { return nil, nil }
+func (r *reconcileRouter) Snapshot(context.Context) (RouterStatus, error) { return RouterStatus{}, nil }
 
-func validRoute() RouteIntent { return RouteIntent{Prefix: "203.0.113.0/24", Family: IPv4, NextHop: "192.0.2.1", Authorized: true} }
+func validRoute() RouteIntent { return RouteIntent{Prefix:"203.0.113.0/24", Family:IPv4, NextHop:"192.0.2.1", Authorized:true} }
 
 func TestRouteReconcilerBlocksUnauthorizedAndUnapproved(t *testing.T) {
 	r := &reconcileRouter{}
@@ -30,5 +30,13 @@ func TestRouteReconcilerBlocksInvalidAndUnhealthy(t *testing.T) {
 	if err := c.Apply(context.Background(), []RouteIntent{bad}); !errors.Is(err, ErrRouteUnauthorized) { t.Fatalf("got %v", err) }
 	r.healthErr = errors.New("router unhealthy")
 	if err := c.Apply(context.Background(), []RouteIntent{validRoute()}); err == nil { t.Fatal("expected health failure") }
+	if r.applied { t.Fatal("router was mutated") }
+}
+
+func TestRouteReconcilerRequiresUpBFDWhenConfigured(t *testing.T) {
+	r := &reconcileRouter{}
+	b := &BFDSession{ID:"bfd1", Local:"192.0.2.1", Remote:"192.0.2.2", MinRxMS:50, MinTxMS:50, Multiplier:3, Authorized:true, Up:false}
+	c := RouteReconciler{Router:r, Authorized:true, Approved:true, BFD:b}
+	if err := c.Apply(context.Background(), []RouteIntent{validRoute()}); err != ErrBFDInvalid { t.Fatalf("got %v", err) }
 	if r.applied { t.Fatal("router was mutated") }
 }
