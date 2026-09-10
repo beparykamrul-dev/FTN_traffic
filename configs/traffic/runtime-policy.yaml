@@ -1,0 +1,30 @@
+version: 1
+service: ftn-global-traffic-runtime
+selection:
+  require_authorization: true
+  require_health: true
+  min_availability: 0.999
+  max_packet_loss_percent: 2
+  max_rtt_p95_ms: 1000
+  hysteresis_percent: 10
+  deterministic_tie_break: path_id
+routing:
+  ipv4: true
+  ipv6: true
+  ecmp: true
+  multipath: true
+  failover: true
+migration:
+  strategies: [ecmp, weighted, canary, failover, blue_green]
+  approval_required: true
+  idempotent: true
+  rollback_on_post_shift_health_failure: true
+telemetry:
+  local_prometheus: true
+  remote_write_optional: true
+  customer_payloads: false
+  secrets: false
+security:
+  unauthorized_path: deny
+  unauthorized_provider_access: deny
+  credentials_in_git: false
