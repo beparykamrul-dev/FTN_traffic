@@ -1,0 +1,17 @@
+version: 1
+service: ftn-traffic
+remote_write:
+  enabled: false
+  endpoint_env: GRAFANA_CLOUD_REMOTE_WRITE_URL
+  token_env: GRAFANA_CLOUD_REMOTE_WRITE_TOKEN
+  scheme: https
+  credentials_in_git: false
+  credentials_in_url: false
+  customer_payload: false
+  tls_verify: true
+  timeout_seconds: 10
+policy:
+  sink: policy_telemetry_sink
+  redact_sensitive_labels: true
+  max_labels: 32
+  fail_closed: true
