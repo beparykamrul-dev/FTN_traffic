@@ -1,0 +1,23 @@
+version: 1
+service: ftn-traffic-migration-controller
+execution:
+  preflight: required
+  health_gate: required
+  shift: gradual
+  observe: required
+  commit: required
+  rollback: automatic_on_failure
+strategies:
+  ecmp: enabled
+  weighted: enabled
+  canary: enabled
+  failover: enabled
+  blue_green: enabled
+safety:
+  approval_required: true
+  authorization_required: true
+  idempotency_required: true
+  fail_closed: true
+  audit_required: true
+  customer_payload_capture: false
+  provider_credentials_in_git: false
