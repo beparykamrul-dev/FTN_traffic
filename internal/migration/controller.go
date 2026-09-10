@@ -6,7 +6,6 @@ const(StatePreflight State="preflight";StateHealthGate State="health_gate";State
 var ErrInvalidStrategy=errors.New("invalid migration strategy")
 var ErrDuplicateMigration=errors.New("duplicate migration idempotency key")
 var ErrMigrationFingerprint=errors.New("migration idempotency key reused with different request")
-var allowedStrategies=map[string]struct{}{"ecmp":{},"weighted":{},"canary":{},"failover":{},"blue_green":{}}
 type Request struct{ID,From,To,ApprovalID string;Strategy string}
 type Executor interface{Preflight(context.Context,Request)error;Shift(context.Context,Request,string)error;Commit(context.Context,Request)error;Rollback(context.Context,Request)error}
 type ApprovalVerifier interface{Verify(context.Context,string)error};type HealthGate interface{Healthy(context.Context,Request)error};type Auditor interface{Record(context.Context,string,Request,string)error}
@@ -18,7 +17,7 @@ func(c *Controller)stateSet(s State,r Request){c.mu.Lock();c.set(s);c.mu.Unlock(
 func(c *Controller)record(ctx context.Context,event string,r Request,detail string){if c.audit!=nil{_=c.audit.Record(ctx,event,r,detail)}}
 func(c *Controller)release(r Request,fp string){c.idempotency.Release(r.ID,fp)}
 func(c *Controller)Run(ctx context.Context,r Request)error{
- if r.ID==""||r.From==""||r.To==""||r.ApprovalID==""{return errors.New("migration id, source, destination and approval are required")};if r.From==r.To{return errors.New("migration source and destination must differ")};if _,ok:=allowedStrategies[r.Strategy];!ok{return ErrInvalidStrategy};if c.exec==nil||c.approval==nil||c.health==nil||c.idempotency==nil{return errors.New("migration dependencies are incomplete")}
+ if r.ID==""||r.From==""||r.To==""||r.ApprovalID==""{return errors.New("migration id, source, destination and approval are required")};if r.From==r.To{return errors.New("migration source and destination must differ")};if err:=ValidateStrategy(r.Strategy);err!=nil{return err};if c.exec==nil||c.approval==nil||c.health==nil||c.idempotency==nil{return errors.New("migration dependencies are incomplete")}
  fp:=fingerprint(r);if !c.idempotency.Claim(r.ID,fp){if !c.idempotency.Matches(r.ID,fp){return ErrMigrationFingerprint};return ErrDuplicateMigration}
  if err:=c.approval.Verify(ctx,r.ApprovalID);err!=nil{c.stateSet(StateFailed,r);c.record(ctx,"migration_denied",r,err.Error());c.release(r,fp);return fmt.Errorf("approval denied: %w",err)}
  c.stateSet(StatePreflight,r);c.record(ctx,"migration_preflight",r,"");if err:=c.exec.Preflight(ctx,r);err!=nil{c.stateSet(StateFailed,r);c.release(r,fp);return err};c.stateSet(StateHealthGate,r)
